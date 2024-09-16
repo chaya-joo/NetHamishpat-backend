@@ -6,25 +6,21 @@ import threading
 import os
 from functools import wraps
 from flask import request, jsonify
-from data_access.user_repository import get_all_users
-
+from data_access.user_repository import users
 import jwt
 from jwt import ExpiredSignatureError, InvalidTokenError
-
-# from models.user_model import users
 from services import send_sms_service, send_email_service
-
 
 verification_data = {}
 
 
 def is_user_exist(identifier: str, identifier_type: str):
     user = None
-    users = get_all_users()
     if identifier_type == 'email':
-        user = next((usr for usr in users if usr['email_address'] == identifier), None)
+        print(users)
+        user = next((user for user in users if user.email == identifier), None)
     if identifier_type == 'phone':
-        user = next((usr for usr in users if usr['phone_number'] == identifier), None)
+        user = next((user for user in users if user.phone == identifier), None)
     return user
 
 
@@ -72,14 +68,13 @@ def verify_code_and_create_token(identifier, code):
 
 
 def manage_token(identifier):
-    users = get_all_users()
     secret_key = os.getenv('SECRET_KEY')
-    user = next((usr for usr in users if usr['phone_number'] == identifier or usr['email_address'] == identifier), None)
+    user = next((usr for usr in users if usr.phone == identifier or usr.email == identifier), None)
     token = ""
     if user:
         payload = {
-            'case_number': user['case_number'],
-            'email': user['email_address'],
+            'caseNumber': user.caseNumber,
+            'email': user.email,
             'expires_at': datetime.utcnow() + timedelta(hours=1)
         }
         token = generate_token(secret_key, payload)
@@ -95,9 +90,11 @@ def generate_token(secret_key, payload):
 
 def decode_token(token):
     secret_key = os.getenv('SECRET_KEY')
+    if token.startswith("Bearer "):
+        token = token[len("Bearer "):]
     try:
         payload = jwt.decode(token, secret_key, algorithms=[os.getenv('TOKEN_ALGORITHM')])
-        return payload
+        return payload['user']
     except ExpiredSignatureError:
         raise ValueError('Token has expired')
     except InvalidTokenError:
@@ -110,9 +107,9 @@ def token_required(f):
     @wraps(f)
     def decorator(*args, **kwargs):
         token = request.headers.get('Authorization')
+        print(token)
         if not token:
             return jsonify({'error': 'Token is missing!'}), 401
-
         try:
             payload = decode_token(token)
         except ValueError as e:
@@ -121,7 +118,3 @@ def token_required(f):
         return f(*args, **kwargs, user=payload)
 
     return decorator
-
-
-
-

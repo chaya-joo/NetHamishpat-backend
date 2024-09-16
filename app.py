@@ -1,11 +1,10 @@
-import os
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from services.auth_service import is_user_exist, decode_token
 from services.auth_service import clean_expired_codes
 from services.auth_service import verify_user
 from services.auth_service import verify_code_and_create_token
-import subprocess
+from services.upload_file_service import save_file_and_add_to_db
 from dotenv import load_dotenv
 from services.auth_service import token_required
 
@@ -15,10 +14,7 @@ CORS(app, resources={r"/*": {"origins": "*"}})
 
 clean_expired_codes()
 
-# subprocess.run(['python', 'scripts/generate_secret_key.py'])
-
 load_dotenv()
-
 
 
 @app.route('/verifyUser', methods=['POST'])
@@ -47,10 +43,14 @@ def check_code():
     return jsonify({"message": "success", 'token': token})
 
 
-@app.route('/decode_token',  methods=['GET'])
-def decode():
-    token = request.json.get('token')
-    return decode_token(token)
+@app.route('/uploadFile', methods=['POST'])
+@token_required
+def add_file(user):
+    if 'file' not in request.files:
+        return jsonify({'error': 'No file part'}), 400
+    file = request.files['file']
+    save_file_and_add_to_db(file, user['caseNumber'])
+    return "aaa"
 
 
 @app.route('/check_token',  methods=['GET'])
