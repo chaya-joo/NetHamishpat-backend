@@ -8,7 +8,7 @@ url = 'https://api.sms4free.co.il/ApiSMS/v2/SendSMS'
 load_dotenv()
 
 
-def send_SMS(identifier, code):
+def send_sms(identifier, code):
     payload = {
         'key': os.getenv('SEND_SMS_API_KEY'),
         'user': os.getenv('SEND_SMS_USER'),

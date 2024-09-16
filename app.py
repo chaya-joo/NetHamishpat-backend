@@ -4,9 +4,10 @@ from flask_cors import CORS
 from services.auth_service import is_user_exist, decode_token
 from services.auth_service import clean_expired_codes
 from services.auth_service import verify_user
-from services.auth_service import is_code_valid
+from services.auth_service import verify_code_and_create_token
 import subprocess
 from dotenv import load_dotenv
+from services.auth_service import token_required
 
 
 app = Flask(__name__)
@@ -14,7 +15,7 @@ CORS(app, resources={r"/*": {"origins": "*"}})
 
 clean_expired_codes()
 
-subprocess.run(['python', 'scripts/generate_secret_key.py'])
+# subprocess.run(['python', 'scripts/generate_secret_key.py'])
 
 load_dotenv()
 
@@ -42,7 +43,7 @@ def check_code():
     data = request.json
     identifier = data.get('identifier')
     code = data.get('code')
-    token = is_code_valid(identifier, code)
+    token = verify_code_and_create_token(identifier, code)
     return jsonify({"message": "success", 'token': token})
 
 
@@ -50,6 +51,12 @@ def check_code():
 def decode():
     token = request.json.get('token')
     return decode_token(token)
+
+
+@app.route('/check_token',  methods=['GET'])
+@token_required
+def chece_token(user):
+    return jsonify({'user': user})
 
 
 if __name__ == '__main__':

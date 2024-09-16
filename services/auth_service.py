@@ -4,11 +4,15 @@ from datetime import datetime, timedelta
 import time
 import threading
 import os
+from functools import wraps
+from flask import request, jsonify
+from data_access.user_repository import get_all_users
+
 import jwt
-from models.user_model import users
-# import services.send_email_service
-# import services.send_SMS_service
-from services import send_SMS_service, send_email_service
+from jwt import ExpiredSignatureError, InvalidTokenError
+
+# from models.user_model import users
+from services import send_sms_service, send_email_service
 
 
 verification_data = {}
@@ -16,6 +20,7 @@ verification_data = {}
 
 def is_user_exist(identifier: str, identifier_type: str):
     user = None
+    users = get_all_users()
     if identifier_type == 'email':
         user = next((usr for usr in users if usr['email_address'] == identifier), None)
     if identifier_type == 'phone':
@@ -42,7 +47,7 @@ def verify_user(identifier, identifier_type):
     if identifier_type == 'email':
         send_email_service.send_email(identifier, code)
     if identifier_type == 'phone':
-        send_SMS_service.send_SMS(identifier, code)
+        send_sms_service.send_sms(identifier, code)
     return code
 
 
@@ -54,7 +59,7 @@ def clean_expired_codes():
     threading.Timer(60, clean_expired_codes).start()
 
 
-def is_code_valid(identifier, code):
+def verify_code_and_create_token(identifier, code):
     if identifier in verification_data:
         data = verification_data[identifier]
         expires_at = data['expires_at']
@@ -67,6 +72,7 @@ def is_code_valid(identifier, code):
 
 
 def manage_token(identifier):
+    users = get_all_users()
     secret_key = os.getenv('SECRET_KEY')
     user = next((usr for usr in users if usr['phone_number'] == identifier or usr['email_address'] == identifier), None)
     token = ""
@@ -82,12 +88,40 @@ def manage_token(identifier):
 
 def generate_token(secret_key, payload):
     if 'expires_at' in payload:
-        payload['expires_at'] = payload['expires_at'].timestamp()
+        payload['expires_at'] = payload['expires_at'].isoformat()
     token = jwt.encode({'user': payload}, secret_key, os.getenv('TOKEN_ALGORITHM'))
     return token
 
 
 def decode_token(token):
     secret_key = os.getenv('SECRET_KEY')
-    payload = jwt.decode(token, secret_key, os.getenv('TOKEN_ALGORITHM'))
-    return payload
+    try:
+        payload = jwt.decode(token, secret_key, algorithms=[os.getenv('TOKEN_ALGORITHM')])
+        return payload
+    except ExpiredSignatureError:
+        raise ValueError('Token has expired')
+    except InvalidTokenError:
+        raise ValueError('Invalid token')
+    except Exception as e:
+        raise ValueError(f'Error decoding token: {str(e)}')
+
+
+def token_required(f):
+    @wraps(f)
+    def decorator(*args, **kwargs):
+        token = request.headers.get('Authorization')
+        if not token:
+            return jsonify({'error': 'Token is missing!'}), 401
+
+        try:
+            payload = decode_token(token)
+        except ValueError as e:
+            return jsonify({'error': str(e)}), 401
+
+        return f(*args, **kwargs, user=payload)
+
+    return decorator
+
+
+
+
