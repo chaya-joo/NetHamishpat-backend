@@ -41,6 +41,12 @@ Flask is a lightweight web framework for Python that allows easy setup of web se
 - **Usage**: Loads environment variables (e.g., API keys, database credentials, secret tokens) from the `.env` file.
 - **Why Python-dotenv?**: Managing sensitive information securely in environment variables is a best practice. Python-dotenv simplifies this process by allowing us to store this information outside the codebase in a dedicated configuration file.
 
+### 8. zeep
+**Zeep is a modern and easy-to-use SOAP client for Python. It allows for seamless interaction with SOAP-based web services by handling the complexities of the SOAP protocol and converting data between SOAP and Python objects.
+
+- **Usage: Communicating with SOAP-based web services, sending requests, and handling responses.
+- **Why zeep?: zeep simplifies working with SOAP services, making it easier to integrate with legacy systems and services that use the SOAP protocol.
+
 ## Installation
 
 To run this project locally, follow these steps:
@@ -98,7 +104,8 @@ The project exposes several API endpoints:
 - **`POST /verifyUser`**: Verifies the user's identity by email or phone.
 - **`POST /verifyCode`**: Verifies the user-provided code and returns an authentication token.
 - **`POST /uploadFile`**: Uploads a file to the server and stores it in the database.
-- **`GET /getAllUsers`**: Retrieves all users from the database.
+- **`POST /getSittings`**: Retrieves all sittings of the user by case-number from net-hamishpat.
+- **`POST /getSittings`**: Retrieves all decisions of the user by case-number from net-hamishpat.
 
 ### Authentication
 - Users are authenticated using a JWT token. After a user is verified, a token is generated and returned. The token should be passed in the `Authorization` header for secure API access.

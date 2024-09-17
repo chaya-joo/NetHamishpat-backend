@@ -6,10 +6,10 @@ import threading
 import os
 from functools import wraps
 from flask import request, jsonify
-from data_access.user_repository import users
 import jwt
 from jwt import ExpiredSignatureError, InvalidTokenError
 from services import send_sms_service, send_email_service
+from data_access.user_repository import users
 
 verification_data = {}
 
