@@ -9,6 +9,7 @@ from templates.html_template import body_template
 
 load_dotenv()
 
+
 def send_email(to_address, code):
     server = None
     try:
@@ -30,8 +31,10 @@ def send_email(to_address, code):
         text = msg.as_string()
         server.sendmail(sender_email, receiver_email, text)
         print("Email sent successfully.")
+    except smtplib.SMTPException as e:
+        raise RuntimeError(f"Failed to send email: {e}")
     except Exception as e:
-        print(f"Error: {e}")
+        raise RuntimeError(f"Unexpected error occurred: {e}")
     finally:
         if server:
             server.set_debuglevel(1)

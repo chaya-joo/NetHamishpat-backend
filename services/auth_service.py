@@ -15,77 +15,102 @@ verification_data = {}
 
 
 def is_user_exist(identifier: str, identifier_type: str):
-    user = None
-    if identifier_type == 'email':
-        print(users)
-        user = next((user for user in users if user.email == identifier), None)
-    if identifier_type == 'phone':
-        user = next((user for user in users if user.phone == identifier), None)
-    return user
+    try:
+        if identifier_type == 'email':
+            user = next((user for user in users if user.email == identifier), None)
+        elif identifier_type == 'phone':
+            user = next((user for user in users if user.phone == identifier), None)
+        else:
+            raise ValueError("Invalid identifier_type")
+        return user
+    except Exception as e:
+        raise RuntimeError(f"Failed to check user existence: {e}")
 
 
 def generate_verification_code():
-    digits_length = 5
-    letters_length = 3
-    digits = string.digits
-    letters = string.ascii_letters
-    random_digits = ''.join(random.choice(digits) for digit in range(digits_length))
-    random_letters = ''.join(random.choice(letters) for letter in range(letters_length))
-    random_code = random_digits + random_letters
-    random_code = ''.join(random.sample(random_code, len(random_code)))
-    return random_code
+    try:
+        digits_length = 5
+        letters_length = 3
+        digits = string.digits
+        letters = string.ascii_letters
+        random_digits = ''.join(random.choice(digits) for _ in range(digits_length))
+        random_letters = ''.join(random.choice(letters) for _ in range(letters_length))
+        random_code = random_digits + random_letters
+        random_code = ''.join(random.sample(random_code, len(random_code)))
+        return random_code
+    except Exception as e:
+        raise RuntimeError(f"Failed to generate verification code: {e}")
 
 
 def verify_user(identifier, identifier_type):
-    code = generate_verification_code()
-    expiration_time = datetime.now() + timedelta(minutes=10)
-    verification_data[identifier] = {'code': code, 'expires_at': expiration_time}
-    if identifier_type == 'email':
-        send_email_service.send_email(identifier, code)
-    if identifier_type == 'phone':
-        send_sms_service.send_sms(identifier, code)
-    return code
+    try:
+        code = generate_verification_code()
+        expiration_time = datetime.now() + timedelta(minutes=10)
+        verification_data[identifier] = {'code': code, 'expires_at': expiration_time}
+        if identifier_type == 'email':
+            send_email_service.send_email(identifier, code)
+        elif identifier_type == 'phone':
+            send_sms_service.send_sms(identifier, code)
+        else:
+            raise ValueError("Invalid identifier_type")
+        return code
+    except Exception as e:
+        raise RuntimeError(f"Failed to verify user: {e}")
+
 
 
 def clean_expired_codes():
-    current_time = datetime.fromtimestamp(time.time())
-    expired_users = [user_id for user_id, data in verification_data.items() if data['expires_at'] < current_time]
-    for user_id in expired_users:
-        del verification_data[user_id]
-    threading.Timer(60, clean_expired_codes).start()
+    try:
+        current_time = datetime.fromtimestamp(time.time())
+        expired_users = [user_id for user_id, data in verification_data.items() if data['expires_at'] < current_time]
+        for user_id in expired_users:
+            del verification_data[user_id]
+        threading.Timer(600, clean_expired_codes).start()
+    except Exception as e:
+        raise RuntimeError(f"Failed to clean expired codes: {e}")
 
 
 def verify_code_and_create_token(identifier, code):
-    if identifier in verification_data:
-        data = verification_data[identifier]
-        expires_at = data['expires_at']
-        current_time = datetime.fromtimestamp(time.time())
-        if data['code'] == code and expires_at > current_time:
-            token = manage_token(identifier)
-            return token
-        return "code is not valid"
-    return "identifier not found"
+    try:
+        if identifier in verification_data:
+            data = verification_data[identifier]
+            expires_at = data['expires_at']
+            current_time = datetime.fromtimestamp(time.time())
+            if data['code'] == code and expires_at > current_time:
+                token = manage_token(identifier)
+                return token
+            return "code is not valid"
+        return "identifier not found"
+    except Exception as e:
+        raise RuntimeError(f"Failed to verify code and create token: {e}")
 
 
 def manage_token(identifier):
-    secret_key = os.getenv('SECRET_KEY')
-    user = next((usr for usr in users if usr.phone == identifier or usr.email == identifier), None)
-    token = ""
-    if user:
+    try:
+        secret_key = os.getenv('SECRET_KEY')
+        user = next((usr for usr in users if usr.phone == identifier or usr.email == identifier), None)
+        if not user:
+            raise ValueError("User not found")
+
         payload = {
             'caseNumber': user.caseNumber,
             'email': user.email,
             'expires_at': datetime.utcnow() + timedelta(hours=1)
         }
         token = generate_token(secret_key, payload)
-    return token
+        return token
+    except Exception as e:
+        raise RuntimeError(f"Failed to manage token: {e}")
 
 
 def generate_token(secret_key, payload):
-    if 'expires_at' in payload:
-        payload['expires_at'] = payload['expires_at'].isoformat()
-    token = jwt.encode({'user': payload}, secret_key, os.getenv('TOKEN_ALGORITHM'))
-    return token
+    try:
+        if 'expires_at' in payload:
+            payload['expires_at'] = payload['expires_at'].isoformat()
+        token = jwt.encode({'user': payload}, secret_key, os.getenv('TOKEN_ALGORITHM'))
+        return token
+    except Exception as e:
+        raise RuntimeError(f"Failed to generate token: {e}")
 
 
 def decode_token(token):
