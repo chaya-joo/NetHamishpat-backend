@@ -1,8 +1,8 @@
+import requests
 import xmltodict
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, json
 from flask_cors import CORS
 from requests import Session
-
 
 from services.auth_service import is_user_exist, decode_token
 from services.auth_service import clean_expired_codes
@@ -11,7 +11,7 @@ from services.auth_service import verify_code_and_create_token
 from services.upload_file_service import save_file_and_add_to_db
 from dotenv import load_dotenv
 from services.auth_service import token_required
-from data_access.soap_client import calculate
+from data_access.soap_client import calculate, weather
 from zeep import Client, Settings, Transport
 
 app = Flask(__name__)
@@ -79,83 +79,130 @@ def add_file(user):
         return jsonify({'error': 'An error occurred', 'details': str(e)}), 500
 
 
-@app.route('/getDecision', methods=['POST']) #רשימת החלטות
+@app.route('/getDecisions', methods=['GET'])  # רשימת החלטות
 @token_required
-def get_decision(user):
-    wsdl = 'https://secure.court.gov.il/NGCS.SoftwareCompaniesInterfaces.SI/DecisionSI.asmx?WSDL'
-    case_id = user.caseNumber
-    session = Session()  # מאפשר להגדיר פרטי חיבור ואימות
-    session.auth = ('username', 'password')
-    transport = Transport(session=session)  #מגדיר את אופן החיבור עם השרת
-    client = Client(wsdl=wsdl, transport=transport)
-    header = {
-        'RequestId': '123',
-        'UserType': 'תז',
-        'UserId': '0535321054',
-    }
-    client.transport = Transport(session=session)
-    request_params = {
-        'CaseIdentification': {
-            'CaseID': case_id
-        }
-    }
+def get_decisions(user):
+    # wsdl = 'https://secure.court.gov.il/NGCS.SoftwareCompaniesInterfaces.SI/DecisionSI.asmx?WSDL'
+    # case_id = user.caseNumber
+    # session = Session()  # מאפשר להגדיר פרטי חיבור ואימות
+    # session.auth = ('username', 'password')
+    # transport = Transport(session=session)  # מגדיר את אופן החיבור עם השרת
+    # client = Client(wsdl=wsdl, transport=transport)
+    # header = {
+    #     'RequestId': '123',
+    #     'UserType': 'תז',
+    #     'UserId': '0535321054',
+    # }
+    # client.transport = Transport(session=session)
+    # request_params = {  # לשנות את הפרמטרים!!
+    #     'CaseIdentification': {
+    #         'OldCaseIdentification': {
+    #             'PreviousCourtID': 12,
+    #             'PreviousCaseTypeID': 12,
+    #             'PreviousCaseYear': 12,
+    #             'PreviousCaseNumber': case_id
+    #         }
+    #     }
+    # }
+    # try:
+    #     response = client.service.GetDecisionsByCaseID(  # לשנות את שם הפונקציה!!
+    #         CaseIdentification=request_params['CaseIdentification'],
+    #         _soapheaders=header
+    #     )
+    #
+    #     response_dict = xmltodict.parse(response)
+    #     response_json = jsonify(response_dict)
+    #     print(response_json)
+    #     return response_json
     try:
-        response = client.service.GetDecisionsByCaseID(  #לשנות את שם הפונקציה!!
-            CaseIdentification=request_params['CaseIdentification'],
-            _soapheaders=header
-        )
-
-        response_dict = xmltodict.parse(response)
-        response_json = jsonify(response_dict)
-        print(response_json)
-        return response_json
+        return jsonify([{
+            'CaseIdentification': '123',
+            'OldCaseIdentification': {
+                'PreviousCourtID': 12,
+                'PreviousCaseTypeID': 12,
+                'PreviousCaseYear': 2024,
+                'PreviousCaseNumber': 987
+            },
+            'DecisionId': 12,
+            'DecisionNumber': 12,
+            'DecisionName': 'number 1',
+            'DecisionSignatureDate': '2024',
+            'DecisionSignatureUserID': 'cause',
+            'DecisionSignatureUserName': 'Yosef Levi',
+            'DecisionDesc': 'important decision',
+            'IsDecisionInProtocol': True,
+            'DecisionTypeID': 1,
+            'IsCanceledDecision': True,
+            'DecisionLinkID': 12,
+            'DecisionLinkTypeID': 12,
+            'IsInstruction': True,
+            'DecisionAttributeID': 12,
+            'IsDecisionConverted': True,
+            'PrivillageID': 12,
+            'DocumentID': '987'
+        }])
 
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
 
-
-
-@app.route('/getSittings', methods=['POST'])
+@app.route('/getSittings', methods=['GET'])
 @token_required
 def get_sittings(user):
-    wsdl = 'https://secure.court.gov.il/NGCS.SoftwareCompaniesInterface.SI/MeetingSI.asmx?WSDL'
-    case_id = user.caseNumber
-    session = Session()  # מאפשר להגדיר פרטי חיבור ואימות
-    session.auth = ('username', 'password')
-    transport = Transport(session=session)  #מגדיר את אופן החיבור עם השרת
-    client = Client(wsdl=wsdl, transport=transport)
-    header = {
-        'RequestId': '123',
-        'UserType': 'תז',
-        'UserId': '0535321054',
-    }
-    request_params = {
-        'CaseIdentification': {
-            'CaseID': case_id
-        }
-    }
+    # wsdl = 'https://secure.court.gov.il/NGCS.SoftwareCompaniesInterface.SI/MeetingSI.asmx?WSDL'
+    # case_id = user.caseNumber
+    # session = Session()  # מאפשר להגדיר פרטי חיבור ואימות
+    # session.auth = ('username', 'password')
+    # transport = Transport(session=session)  # מגדיר את אופן החיבור עם השרת
+    # client = Client(wsdl=wsdl, transport=transport)
+    # header = {
+    #     'RequestId': '123',
+    #     'UserType': 'תז',
+    #     'UserId': '0535321054',
+    # }
+    # request_params = {  # לשנות את הפרמטרים!!
+    #     'CaseIdentification': {
+    #         'OldCaseIdentification': {
+    #             'PreviousCourtID': 12,
+    #             'PreviousCaseTypeID': 12,
+    #             'PreviousCaseYear': 12,
+    #             'PreviousCaseNumber': case_id
+    #         }
+    #     }
+    # }
+    # try:
+    #     response = client.service.GetSittingsByCaseID(  # לשנות את שם הפונקציה!!
+    #         CaseIdentification=request_params['CaseIdentification'],
+    #         _soapheaders=header
+    #     )
+    #
+    #     response_dict = xmltodict.parse(response)
+    #     response_json = jsonify(response_dict)
+    #     print(response_json)
+    #     return response_json
     try:
-        response = client.service.GetSittingsByCaseID(  #לשנות את שם הפונקציה!!
-            CaseIdentification=request_params['CaseIdentification'],
-            _soapheaders=header
-        )
-
-        response_dict = xmltodict.parse(response)
-        response_json = jsonify(response_dict)
-        print(response_json)
-        return response_json
+        return jsonify([{
+            'OldCaseIdentification': {
+                'PreviousCourtID': 12,
+                'PreviousCaseTypeID': 12,
+                'PreviousCaseYear': 2024,
+                'PreviousCaseNumber': 987
+            },
+            'SittingDate': '2024',
+            'SittingTime': '06',
+            'SittingTypeID': 123,
+            'JudgeName': 'Yosef Levi',
+            'SittingActivityStatusID': 12
+        }])
 
     except Exception as e:
         return jsonify({'error': str(e)}), 500
-
 
 
 @app.route('/checkWebService', methods=['POST'])
 def check_web_service():
-    data = request.json
-    num1 = data.get('num1')
-    num2 = data.get('num2')
+    num1 = request.json.get('num1')
+    num2 = request.json.get('num2')
     return calculate(num1, num2)
 
 

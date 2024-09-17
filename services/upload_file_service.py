@@ -28,7 +28,7 @@ def save_file(file, case_number):
     try:
         if file and is_valid_file(file.filename):
             filename = secure_filename(file.filename)
-            folder_path = os.path.join(UPLOAD_FOLDER, case_number)
+            folder_path = os.path.join(UPLOAD_FOLDER, str(case_number))
             if not os.path.exists(folder_path):
                 os.makedirs(folder_path)
             file_path = os.path.join(folder_path, filename)

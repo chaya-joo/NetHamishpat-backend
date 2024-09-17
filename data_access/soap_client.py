@@ -7,6 +7,18 @@ def calculate(num1, num2):
     client = Client(wsdl=wsdl)
     result = client.service.Add(num1, num2)
     if isinstance(result, str):
-        return xmltodict.parse(result)
+        return result
     else:
         return f"result is: {result}"
+
+
+
+def weather():
+    wsdl = 'http://www.webservicex.net/globalweather.asmx?WSDL'
+
+    client = Client(wsdl=wsdl)
+
+    city = 'Tel Aviv'
+    country = 'Israel'
+    response = client.service.GetWeather(city, country)
+    return response
