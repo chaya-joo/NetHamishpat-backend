@@ -105,7 +105,7 @@ The project exposes several API endpoints:
 - **`POST /verifyCode`**: Verifies the user-provided code and returns an authentication token.
 - **`POST /uploadFile`**: Uploads a file to the server and stores it in the database.
 - **`POST /getSittings`**: Retrieves all sittings of the user by case-number from net-hamishpat.
-- **`POST /getSittings`**: Retrieves all decisions of the user by case-number from net-hamishpat.
+- **`POST /getDecisions`**: Retrieves all decisions of the user by case-number from net-hamishpat.
 
 ### Authentication
 - Users are authenticated using a JWT token. After a user is verified, a token is generated and returned. The token should be passed in the `Authorization` header for secure API access.
