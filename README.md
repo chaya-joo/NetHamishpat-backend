@@ -41,11 +41,11 @@ Flask is a lightweight web framework for Python that allows easy setup of web se
 - **Usage**: Loads environment variables (e.g., API keys, database credentials, secret tokens) from the `.env` file.
 - **Why Python-dotenv?**: Managing sensitive information securely in environment variables is a best practice. Python-dotenv simplifies this process by allowing us to store this information outside the codebase in a dedicated configuration file.
 
-### 8. zeep
-**Zeep is a modern and easy-to-use SOAP client for Python. It allows for seamless interaction with SOAP-based web services by handling the complexities of the SOAP protocol and converting data between SOAP and Python objects.
+### 7. zeep
+Zeep is a modern and easy-to-use SOAP client for Python. It allows for seamless interaction with SOAP-based web services by handling the complexities of the SOAP protocol and converting data between SOAP and Python objects.
 
-- **Usage: Communicating with SOAP-based web services, sending requests, and handling responses.
-- **Why zeep?: zeep simplifies working with SOAP services, making it easier to integrate with legacy systems and services that use the SOAP protocol.
+- Usage: Communicating with SOAP-based web services, sending requests, and handling responses.
+- Why zeep?: zeep simplifies working with SOAP services, making it easier to integrate with legacy systems and services that use the SOAP protocol.
 
 ## Installation
 
